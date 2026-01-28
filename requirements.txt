@@ -1,14 +1,14 @@
 # Core Python ML stack
-numpy
-pandas
-scikit-learn
+numpy  # requested: numpy==1.24.3
+pandas  # requested: pandas==2.0.3
+scikit-learn  # requested: scikit-learn==1.3.0
 
 # Visualization & EDA
-matplotlib
+matplotlib  # requested: matplotlib==3.7.2
 seaborn
 
 # Experiment tracking
-mlflow
+mlflow  # requested: mlflow==2.7.1
 
 # API & model serving
 fastapi
@@ -34,3 +34,11 @@ prometheus-client
 python-dotenv
 
 prometheus-fastapi-instrumentator
+
+# Additional requested packages (versions noted; unpinned here)
+# tensorflow — requested: tensorflow==2.13.0
+tensorflow
+# opencv-python — requested: opencv-python==4.8.0.76
+opencv-python
+# dvc — requested: dvc==3.30.1
+dvc
