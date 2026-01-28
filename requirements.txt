@@ -1,0 +1,36 @@
+# Core Python ML stack
+numpy
+pandas
+scikit-learn
+
+# Visualization & EDA
+matplotlib
+seaborn
+
+# Experiment tracking
+mlflow
+
+# API & model serving
+fastapi
+uvicorn
+
+# Data validation & utilities
+pydantic
+joblib
+
+# Testing
+pytest
+
+# Code quality (CI/CD)
+flake8
+
+# Notebook support
+jupyter
+
+# Monitoring & metrics
+prometheus-client
+
+# Optional (used in some environments)
+python-dotenv
+
+prometheus-fastapi-instrumentator
