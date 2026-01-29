@@ -1,102 +1,105 @@
 import os
+import tensorflow as tf
 import mlflow
 import mlflow.tensorflow
-import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.metrics import confusion_matrix
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-from data_loader import load_data
-from model import build_model
+# ===============================
+# SAFE CONFIG (CPU)
+# ===============================
+IMG_SIZE = (128, 128)
+BATCH_SIZE = 4
+EPOCHS = 5
+SEED = 42
 
+# ===============================
+# PATHS
+# ===============================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "..", "data", "processed")
+MLRUNS_DIR = os.path.join(BASE_DIR, "..", "mlruns")
 
-# -------------------------
-# MLflow Configuration
-# -------------------------
-mlflow.set_experiment("Cats_vs_Dogs_Baseline")
+TRAIN_DIR = os.path.join(DATA_DIR, "train")
+VAL_DIR = os.path.join(DATA_DIR, "val")
 
-PROCESSED_DATA_DIR = "data/processed"
-MODEL_DIR = "models"
+# ===============================
+# MLflow
+# ===============================
+mlflow.set_tracking_uri(f"file:///{MLRUNS_DIR.replace(os.sep, '/')}")
+mlflow.set_experiment("Bits_MLOps_Project2")
 
+# ===============================
+# DATA GENERATORS
+# ===============================
+train_datagen = ImageDataGenerator(
+    rescale=1.0 / 255,
+    horizontal_flip=True
+)
 
-# -------------------------
-# Utility: Confusion Matrix Plot
-# -------------------------
-def plot_confusion_matrix(cm, filename="confusion_matrix.png"):
-    plt.figure(figsize=(4, 4))
-    plt.imshow(cm)
-    plt.title("Confusion Matrix")
-    plt.colorbar()
-    plt.xlabel("Predicted Label")
-    plt.ylabel("True Label")
-    plt.tight_layout()
-    plt.savefig(filename)
-    plt.close()
+val_datagen = ImageDataGenerator(rescale=1.0 / 255)
 
+train_gen = train_datagen.flow_from_directory(
+    TRAIN_DIR,
+    target_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode="binary",
+    seed=SEED
+)
 
-# -------------------------
-# Training Pipeline
-# -------------------------
-if __name__ == "__main__":
+val_gen = val_datagen.flow_from_directory(
+    VAL_DIR,
+    target_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    class_mode="binary",
+    seed=SEED
+)
 
-    # Load preprocessed data
-    X_train, y_train, X_val, y_val, X_test, y_test = load_data(PROCESSED_DATA_DIR)
+# ===============================
+# MODEL
+# ===============================
+model = Sequential([
+    Input(shape=(128, 128, 3)),
 
-    # Hyperparameters
-    learning_rate = 0.001
-    epochs = 5
-    batch_size = 32
+    Conv2D(16, 3, activation="relu"),
+    MaxPooling2D(),
 
-    with mlflow.start_run():
+    Conv2D(32, 3, activation="relu"),
+    MaxPooling2D(),
 
-        # Log parameters
-        mlflow.log_param("learning_rate", learning_rate)
-        mlflow.log_param("epochs", epochs)
-        mlflow.log_param("batch_size", batch_size)
-        mlflow.log_param("input_size", "224x224 RGB")
-        mlflow.log_param("augmentation", "rotation, shift, flip")
+    Flatten(),
+    Dense(64, activation="relu"),
+    Dropout(0.5),
+    Dense(1, activation="sigmoid")
+])
 
-        # Data Augmentation (TRAIN ONLY)
-        train_datagen = ImageDataGenerator(
-            rotation_range=20,
-            width_shift_range=0.1,
-            height_shift_range=0.1,
-            horizontal_flip=True
-        )
+model.compile(
+    optimizer="adam",
+    loss="binary_crossentropy",
+    metrics=["accuracy"]
+)
 
-        train_datagen.fit(X_train)
+# ===============================
+# TRAIN + LOG
+# ===============================
+with mlflow.start_run(run_name="cats_vs_dogs_cpu"):
 
-        # Build model
-        model = build_model(learning_rate=learning_rate)
+    mlflow.log_param("img_size", IMG_SIZE)
+    mlflow.log_param("batch_size", BATCH_SIZE)
+    mlflow.log_param("epochs", EPOCHS)
+    mlflow.log_param("optimizer", "adam")
 
-        # Train model
-        history = model.fit(
-            train_datagen.flow(X_train, y_train, batch_size=batch_size),
-            validation_data=(X_val, y_val),
-            epochs=epochs
-        )
+    history = model.fit(
+        train_gen,
+        epochs=EPOCHS,
+        validation_data=val_gen
+    )
 
-        # Evaluate on test set
-        test_loss, test_accuracy = model.evaluate(X_test, y_test)
+    mlflow.log_metric("val_accuracy", history.history["val_accuracy"][-1])
+    mlflow.log_metric("val_loss", history.history["val_loss"][-1])
 
-        # Log metrics
-        mlflow.log_metric("test_loss", test_loss)
-        mlflow.log_metric("test_accuracy", test_accuracy)
+    mlflow.tensorflow.log_model(model, "model")
 
-        # Predictions for confusion matrix
-        y_pred = (model.predict(X_test) > 0.5).astype(int)
-
-        cm = confusion_matrix(y_test, y_pred)
-        plot_confusion_matrix(cm)
-
-        # Log confusion matrix
-        mlflow.log_artifact("confusion_matrix.png")
-
-        # Save model
-        os.makedirs(MODEL_DIR, exist_ok=True)
-        model_path = os.path.join(MODEL_DIR, "cats_dogs_model.h5")
-        model.save(model_path)
-
-        # Log model artifact
-        mlflow.log_artifact(model_path)
+print("✅ Training completed successfully")
+print("✅ MLflow run logged")

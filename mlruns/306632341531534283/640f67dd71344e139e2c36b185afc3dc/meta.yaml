@@ -1,0 +1,14 @@
+artifact_uri: file:///f:/MTECH_AILML_2024_25/SEM3/MLops/MLOPS_Project/BitsAIML2025_Mlops_Project2/src/../mlruns/306632341531534283/640f67dd71344e139e2c36b185afc3dc/artifacts
+end_time: 1769704148604
+entry_point_name: ''
+experiment_id: '306632341531534283'
+lifecycle_stage: active
+run_id: 640f67dd71344e139e2c36b185afc3dc
+run_name: cats_vs_dogs_cpu
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1769703432624
+status: 3
+tags: []
+user_id: suhasini2728
