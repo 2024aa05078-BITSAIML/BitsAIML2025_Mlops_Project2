@@ -1,0 +1,15 @@
+creation_timestamp: 1770040025021
+current_stage: Staging
+deployment_job_state: null
+description: null
+last_updated_timestamp: 1770040025087
+model_id: m-1cf0237ddb104fff9058ecf2c575156d
+name: Bits_CNN_Model
+run_id: 640f67dd71344e139e2c36b185afc3dc
+run_link: null
+source: models:/m-1cf0237ddb104fff9058ecf2c575156d
+status: READY
+status_message: null
+storage_location: file:///f:/MTECH_AILML_2024_25/SEM3/MLops/MLOPS_Project/BitsAIML2025_Mlops_Project2/src/../mlruns/306632341531534283/models/m-1cf0237ddb104fff9058ecf2c575156d/artifacts
+user_id: null
+version: 1
